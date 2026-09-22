@@ -1,4 +1,4 @@
-/* ── UC Image Slider ── */
+/* ── UC Dynamic Slider ── */
 
 .uc-slider-outer {
     position: relative;
@@ -64,6 +64,33 @@
 
 .uc-slide:hover .uc-slide-bg {
     transform: scale(1.03);
+}
+
+/* ── Video Background ── */
+.uc-slide-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.uc-slide-iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vw;
+    height: 56.25vw;
+    min-height: 100%;
+    min-width: 177.77vh;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+    border: none;
 }
 
 /* ── Overlay ── */

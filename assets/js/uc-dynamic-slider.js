@@ -1,11 +1,33 @@
 /**
- * UC Image Slider — Frontend JS
+ * UC Dynamic Slider — Frontend JS
  * Initialises all sliders on the page.
  */
 (function () {
     'use strict';
 
     var swipers = [];
+
+    function handleVideoPlayback(swiper) {
+        if (!swiper || !swiper.slides) return;
+        swiper.slides.forEach(function (slide, idx) {
+            var video = slide.querySelector('video.uc-slide-video');
+            if (!video) return;
+
+            if (idx === swiper.activeIndex) {
+                var playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(function (err) {
+                        console.log('UC Slider: video play interrupted or prevented', err);
+                    });
+                }
+            } else {
+                video.pause();
+                try {
+                    video.currentTime = 0;
+                } catch (e) {}
+            }
+        });
+    }
 
     function initSliders() {
         console.log('UC Slider: initSliders called');
@@ -29,7 +51,7 @@
                 config = JSON.parse(el.getAttribute('data-swiper'));
                 console.log('UC Slider: config', config);
             } catch (e) {
-                console.warn('UC Image Slider: invalid swiper config', e);
+                console.warn('UC Dynamic Slider: invalid swiper config', e);
                 return;
             }
 
@@ -49,6 +71,14 @@
             var swiperConfig = Object.assign({}, config, {
                 observer: true,
                 observeParents: true,
+                on: {
+                    init: function () {
+                        handleVideoPlayback(this);
+                    },
+                    slideChange: function () {
+                        handleVideoPlayback(this);
+                    }
+                }
             });
             
             el._ucSwiper = new Swiper(swiperEl, swiperConfig);
@@ -77,7 +107,7 @@
     function registerElementorHook() {
         if (window.elementorFrontend && window.elementorFrontend.hooks) {
             window.elementorFrontend.hooks.addAction(
-                'frontend/element_ready/uc_image_slider.default',
+                'frontend/element_ready/uc_dynamic_slider.default',
                 function ($scope) {
                     // Destroy existing slider in this scope
                     destroySlidersIn($scope[0]);
