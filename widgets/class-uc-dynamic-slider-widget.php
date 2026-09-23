@@ -63,6 +63,34 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'description' => __( 'Enter YouTube or Vimeo video link.', 'uc-dynamic-slider' ),
         ]);
 
+        $repeater->add_control( 'slide_external_fit', [
+            'label'     => __( 'External Video Fit', 'uc-dynamic-slider' ),
+            'type'      => Controls_Manager::SELECT,
+            'default'   => 'cover',
+            'options'   => [
+                'cover'   => __( 'Cover (Full Background)', 'uc-dynamic-slider' ),
+                'contain' => __( 'Contain (Fit Inside)', 'uc-dynamic-slider' ),
+                'custom'  => __( 'Custom Height', 'uc-dynamic-slider' ),
+            ],
+            'condition' => [ 'slide_type' => 'external' ],
+        ]);
+
+        $repeater->add_responsive_control( 'slide_external_height', [
+            'label'      => __( 'External Video Height', 'uc-dynamic-slider' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%', 'vh' ],
+            'range'      => [
+                'px' => [ 'min' => 100, 'max' => 900, 'step' => 10 ],
+                '%'  => [ 'min' => 20,  'max' => 100, 'step' => 1  ],
+                'vh' => [ 'min' => 20,  'max' => 100, 'step' => 1  ],
+            ],
+            'default'    => [ 'unit' => '%', 'size' => 100 ],
+            'condition'  => [ 'slide_type' => 'external' ],
+            'selectors'  => [
+                '{{WRAPPER}} {{CURRENT_ITEM}} .uc-slide-iframe' => 'height: {{SIZE}}{{UNIT}} !important; min-height: {{SIZE}}{{UNIT}} !important;',
+            ],
+        ]);
+
         $repeater->add_control( 'slide_video_loop', [
             'label'        => __( 'Loop Video', 'uc-dynamic-slider' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -767,18 +795,20 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             <div class="uc-slider-wrapper swiper">
                 <div class="swiper-wrapper">
                     <?php foreach ( $slides as $index => $slide ) :
-                        $slide_type = ! empty( $slide['slide_type'] ) ? $slide['slide_type'] : 'image';
-                        $img_url    = ! empty( $slide['slide_image']['url'] ) ? $slide['slide_image']['url'] : Utils::get_placeholder_image_src();
-                        $video_url  = ! empty( $slide['slide_video']['url'] ) ? $slide['slide_video']['url'] : '';
-                        $ext_url    = ! empty( $slide['slide_video_url'] ) ? $slide['slide_video_url'] : '';
-                        $is_loop    = ( ! isset( $slide['slide_video_loop'] ) || $slide['slide_video_loop'] === 'yes' );
-                        $is_mute    = ( ! isset( $slide['slide_video_mute'] ) || $slide['slide_video_mute'] === 'yes' );
+                        $slide_type     = ! empty( $slide['slide_type'] ) ? $slide['slide_type'] : 'image';
+                        $img_url        = ! empty( $slide['slide_image']['url'] ) ? $slide['slide_image']['url'] : Utils::get_placeholder_image_src();
+                        $video_url      = ! empty( $slide['slide_video']['url'] ) ? $slide['slide_video']['url'] : '';
+                        $ext_url        = ! empty( $slide['slide_video_url'] ) ? $slide['slide_video_url'] : '';
+                        $ext_fit        = ! empty( $slide['slide_external_fit'] ) ? $slide['slide_external_fit'] : 'cover';
+                        $is_loop        = ( ! isset( $slide['slide_video_loop'] ) || $slide['slide_video_loop'] === 'yes' );
+                        $is_mute        = ( ! isset( $slide['slide_video_mute'] ) || $slide['slide_video_mute'] === 'yes' );
+                        $repeater_class = ! empty( $slide['_id'] ) ? 'elementor-repeater-item-' . $slide['_id'] : '';
 
-                        $has_link   = ! empty( $slide['slide_link']['url'] );
-                        $target     = ! empty( $slide['slide_link']['is_external'] ) ? '_blank' : '_self';
-                        $norel      = ! empty( $slide['slide_link']['nofollow'] ) ? 'nofollow' : '';
+                        $has_link       = ! empty( $slide['slide_link']['url'] );
+                        $target         = ! empty( $slide['slide_link']['is_external'] ) ? '_blank' : '_self';
+                        $norel          = ! empty( $slide['slide_link']['nofollow'] ) ? 'nofollow' : '';
                     ?>
-                    <div class="swiper-slide uc-slide uc-slide-type-<?php echo esc_attr( $slide_type ); ?>">
+                    <div class="swiper-slide uc-slide uc-slide-type-<?php echo esc_attr( $slide_type ); ?> <?php echo esc_attr( $repeater_class ); ?>" data-external-fit="<?php echo esc_attr( $ext_fit ); ?>">
                         <?php if ( 'video' === $slide_type && $video_url ) : ?>
                             <video class="uc-slide-video"
                                    autoplay
