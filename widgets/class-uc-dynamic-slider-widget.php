@@ -63,6 +63,34 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'description' => __( 'Enter YouTube or Vimeo video link.', 'uc-dynamic-slider' ),
         ]);
 
+        $repeater->add_control( 'slide_external_fit', [
+            'label'     => __( 'External Video Fit', 'uc-dynamic-slider' ),
+            'type'      => Controls_Manager::SELECT,
+            'default'   => 'cover',
+            'options'   => [
+                'cover'   => __( 'Cover (Full Background)', 'uc-dynamic-slider' ),
+                'contain' => __( 'Contain (Fit Inside)', 'uc-dynamic-slider' ),
+                'custom'  => __( 'Custom Height', 'uc-dynamic-slider' ),
+            ],
+            'condition' => [ 'slide_type' => 'external' ],
+        ]);
+
+        $repeater->add_responsive_control( 'slide_external_height', [
+            'label'      => __( 'External Video Height', 'uc-dynamic-slider' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%', 'vh' ],
+            'range'      => [
+                'px' => [ 'min' => 100, 'max' => 900, 'step' => 10 ],
+                '%'  => [ 'min' => 20,  'max' => 100, 'step' => 1  ],
+                'vh' => [ 'min' => 20,  'max' => 100, 'step' => 1  ],
+            ],
+            'default'    => [ 'unit' => '%', 'size' => 100 ],
+            'condition'  => [ 'slide_type' => 'external' ],
+            'selectors'  => [
+                '{{WRAPPER}} {{CURRENT_ITEM}} .uc-slide-iframe' => 'height: {{SIZE}}{{UNIT}} !important; min-height: {{SIZE}}{{UNIT}} !important;',
+            ],
+        ]);
+
         $repeater->add_control( 'slide_video_loop', [
             'label'        => __( 'Loop Video', 'uc-dynamic-slider' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -681,6 +709,63 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
         $this->end_controls_section();
     }
 
+    private function get_external_video_poster( $url ) {
+        if ( empty( $url ) ) return '';
+
+        // YouTube Thumbnail – try maxresdefault (1280×720) first,
+        // fall back to sddefault (640×480) then hqdefault (480×360).
+        if ( preg_match( '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches ) ) {
+            $video_id = $matches[1];
+            $transient_key = 'uc_yt_thumb_' . $video_id;
+            $cached = get_transient( $transient_key );
+            if ( false !== $cached ) return $cached;
+
+            // Check each quality level; maxresdefault may 404 for some videos.
+            $qualities = [ 'maxresdefault', 'sddefault', 'hqdefault' ];
+            foreach ( $qualities as $quality ) {
+                $thumb_url = 'https://img.youtube.com/vi/' . $video_id . '/' . $quality . '.jpg';
+                $check = wp_remote_head( $thumb_url, [ 'timeout' => 3 ] );
+                if ( ! is_wp_error( $check ) && 200 === wp_remote_retrieve_response_code( $check ) ) {
+                    set_transient( $transient_key, $thumb_url, WEEK_IN_SECONDS );
+                    return $thumb_url;
+                }
+            }
+            // Ultimate fallback (always exists)
+            $fallback = 'https://img.youtube.com/vi/' . $video_id . '/hqdefault.jpg';
+            set_transient( $transient_key, $fallback, WEEK_IN_SECONDS );
+            return $fallback;
+        }
+
+        // Vimeo Thumbnail via oEmbed API – request 1920px wide image.
+        if ( preg_match( '/vimeo\.com\/(?:.*\/)?([0-9]+)/', $url, $matches ) ) {
+            $video_id = $matches[1];
+            $transient_key = 'uc_vimeo_thumb_' . $video_id;
+            $cached = get_transient( $transient_key );
+            if ( false !== $cached ) return $cached;
+
+            // oEmbed endpoint returns thumbnail_url at requested width.
+            $oembed_url = add_query_arg( [
+                'url'   => 'https://vimeo.com/' . $video_id,
+                'width' => 1920,
+            ], 'https://vimeo.com/api/oembed.json' );
+
+            $response = wp_remote_get( $oembed_url, [ 'timeout' => 5 ] );
+            if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
+                $data = json_decode( wp_remote_retrieve_body( $response ), true );
+                if ( ! empty( $data['thumbnail_url'] ) ) {
+                    // oEmbed thumbnail_url already respects the width param.
+                    // Force the largest available size via URL manipulation.
+                    $thumb_url = preg_replace( '/_\d+x\d+/', '_1920', $data['thumbnail_url'] );
+                    set_transient( $transient_key, $thumb_url, WEEK_IN_SECONDS );
+                    return $thumb_url;
+                }
+            }
+            set_transient( $transient_key, '', DAY_IN_SECONDS );
+        }
+
+        return '';
+    }
+
     private function get_video_embed_url( $url, $mute = true, $loop = true ) {
         if ( empty( $url ) ) return '';
 
@@ -688,11 +773,13 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
         if ( preg_match( '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches ) ) {
             $video_id = $matches[1];
             $params = [
-                'autoplay' => 1,
-                'mute'     => $mute ? 1 : 0,
-                'controls' => 0,
-                'rel'      => 0,
+                'autoplay'    => 1,
+                'mute'        => $mute ? 1 : 0,
+                'controls'    => 0,
+                'rel'         => 0,
                 'enablejsapi' => 1,
+                'playsinline' => 1,
+                'wmode'       => 'transparent',
             ];
             if ( $loop ) {
                 $params['loop'] = 1;
@@ -705,11 +792,15 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
         if ( preg_match( '/vimeo\.com\/(?:.*\/)?([0-9]+)/', $url, $matches ) ) {
             $video_id = $matches[1];
             $params = [
-                'autoplay'  => 1,
-                'muted'     => $mute ? 1 : 0,
-                'loop'      => $loop ? 1 : 0,
-                'autopause' => 0,
-                'background'=> 1,
+                'autoplay'    => 1,
+                'muted'       => $mute ? 1 : 0,
+                'loop'        => $loop ? 1 : 0,
+                'autopause'   => 0,
+                'background'  => 1,
+                'transparent' => 1,
+                'api'         => 1,
+                'player_id'   => 'vimeo_' . $video_id,
+                'dnt'         => 1,
             ];
             return add_query_arg( $params, 'https://player.vimeo.com/video/' . $video_id );
         }
@@ -767,25 +858,42 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             <div class="uc-slider-wrapper swiper">
                 <div class="swiper-wrapper">
                     <?php foreach ( $slides as $index => $slide ) :
-                        $slide_type = ! empty( $slide['slide_type'] ) ? $slide['slide_type'] : 'image';
-                        $img_url    = ! empty( $slide['slide_image']['url'] ) ? $slide['slide_image']['url'] : Utils::get_placeholder_image_src();
-                        $video_url  = ! empty( $slide['slide_video']['url'] ) ? $slide['slide_video']['url'] : '';
-                        $ext_url    = ! empty( $slide['slide_video_url'] ) ? $slide['slide_video_url'] : '';
-                        $is_loop    = ( ! isset( $slide['slide_video_loop'] ) || $slide['slide_video_loop'] === 'yes' );
-                        $is_mute    = ( ! isset( $slide['slide_video_mute'] ) || $slide['slide_video_mute'] === 'yes' );
+                        $slide_type       = ! empty( $slide['slide_type'] ) ? $slide['slide_type'] : 'image';
+                        $has_custom_image = ! empty( $slide['slide_image']['url'] );
+                        $ext_url          = ! empty( $slide['slide_video_url'] ) ? $slide['slide_video_url'] : '';
 
-                        $has_link   = ! empty( $slide['slide_link']['url'] );
-                        $target     = ! empty( $slide['slide_link']['is_external'] ) ? '_blank' : '_self';
-                        $norel      = ! empty( $slide['slide_link']['nofollow'] ) ? 'nofollow' : '';
+                        if ( 'image' === $slide_type ) {
+                            $img_url = $has_custom_image ? $slide['slide_image']['url'] : Utils::get_placeholder_image_src();
+                        } elseif ( 'external' === $slide_type ) {
+                            $img_url = $has_custom_image ? $slide['slide_image']['url'] : $this->get_external_video_poster( $ext_url );
+                        } else {
+                            $img_url = $has_custom_image ? $slide['slide_image']['url'] : '';
+                        }
+
+                        $video_url      = ! empty( $slide['slide_video']['url'] ) ? $slide['slide_video']['url'] : '';
+                        $ext_fit        = ! empty( $slide['slide_external_fit'] ) ? $slide['slide_external_fit'] : 'cover';
+                        $is_loop        = ( ! isset( $slide['slide_video_loop'] ) || $slide['slide_video_loop'] === 'yes' );
+                        $is_mute        = ( ! isset( $slide['slide_video_mute'] ) || $slide['slide_video_mute'] === 'yes' );
+                        $repeater_class = ! empty( $slide['_id'] ) ? 'elementor-repeater-item-' . $slide['_id'] : '';
+
+                        $has_link       = ! empty( $slide['slide_link']['url'] );
+                        $target         = ! empty( $slide['slide_link']['is_external'] ) ? '_blank' : '_self';
+                        $norel          = ! empty( $slide['slide_link']['nofollow'] ) ? 'nofollow' : '';
                     ?>
-                    <div class="swiper-slide uc-slide uc-slide-type-<?php echo esc_attr( $slide_type ); ?>">
+                    <div class="swiper-slide uc-slide uc-slide-type-<?php echo esc_attr( $slide_type ); ?> <?php echo esc_attr( $repeater_class ); ?>" data-external-fit="<?php echo esc_attr( $ext_fit ); ?>">
+                        <?php if ( $img_url ) : ?>
+                            <div class="uc-slide-bg" style="background-image: url('<?php echo esc_url( $img_url ); ?>'); background-position: center; background-repeat: no-repeat;"></div>
+                        <?php endif; ?>
+
                         <?php if ( 'video' === $slide_type && $video_url ) : ?>
                             <video class="uc-slide-video"
                                    autoplay
+                                   muted
                                    playsinline
+                                   preload="auto"
                                    <?php echo $is_mute ? 'muted' : ''; ?>
                                    <?php echo $is_loop ? 'loop' : ''; ?>
-                                   poster="<?php echo esc_url( $img_url ); ?>">
+                                   <?php if ( $img_url ) echo 'poster="' . esc_url( $img_url ) . '"'; ?>>
                                 <source src="<?php echo esc_url( $video_url ); ?>">
                             </video>
                         <?php elseif ( 'external' === $slide_type && $ext_url ) :
@@ -794,10 +902,10 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                             <iframe class="uc-slide-iframe"
                                     src="<?php echo esc_url( $embed_url ); ?>"
                                     frameborder="0"
+                                    loading="eager"
+                                    fetchpriority="high"
                                     allow="autoplay; encrypted-media; picture-in-picture"
                                     allowfullscreen></iframe>
-                        <?php else : ?>
-                            <div class="uc-slide-bg" style="background-image: url('<?php echo esc_url( $img_url ); ?>'); background-position: center; background-repeat: no-repeat;"></div>
                         <?php endif; ?>
                         
                         <div class="uc-slide-overlay"></div>
