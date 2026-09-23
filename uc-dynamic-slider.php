@@ -2,7 +2,7 @@
 /**
  * Plugin Name: UC Dynamic Slider
  * Description: A custom Elementor widget — dynamic slider supporting Images, Animated GIFs, MP4/WebM Videos, and YouTube/Vimeo embeds with captions, autoplay, navigation, and custom buttons.
- * Version: 1.1.0
+ * Version: 1.2.5
  * Author: Agornyrah Eric
  * Text Domain: uc-dynamic-slider
  */
@@ -26,6 +26,20 @@ add_action( 'plugins_loaded', function() {
         require_once UC_DYNAMIC_SLIDER_PATH . 'widgets/class-uc-dynamic-slider-widget.php';
         $manager->register( new \UC_Dynamic_Slider_Widget() );
     });
+});
+
+/**
+ * Add resource hints for faster Vimeo & YouTube video pre-loading.
+ */
+add_action( 'wp_head', function() {
+    if ( is_admin() ) return;
+    echo '<link rel="preconnect" href="https://player.vimeo.com" crossorigin>' . "\n";
+    echo '<link rel="preconnect" href="https://f.vimeocdn.com" crossorigin>' . "\n";
+    echo '<link rel="preconnect" href="https://i.vimeocdn.com" crossorigin>' . "\n";
+    echo '<link rel="preconnect" href="https://www.youtube.com" crossorigin>' . "\n";
+    echo '<link rel="preconnect" href="https://img.youtube.com" crossorigin>' . "\n";
+    echo '<link rel="dns-prefetch" href="https://player.vimeo.com">' . "\n";
+    echo '<link rel="dns-prefetch" href="https://f.vimeocdn.com">' . "\n";
 });
 
 /**

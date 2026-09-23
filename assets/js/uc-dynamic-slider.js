@@ -7,26 +7,73 @@
 
     var swipers = [];
 
-    function handleVideoPlayback(swiper) {
-        if (!swiper || !swiper.slides) return;
-        swiper.slides.forEach(function (slide, idx) {
-            var video = slide.querySelector('video.uc-slide-video');
-            if (!video) return;
+    function markVideoPlaying(slide) {
+        if (slide) {
+            slide.classList.add('uc-video-playing');
+        }
+    }
 
-            if (idx === swiper.activeIndex) {
+    // HTML5 video event handling
+    document.addEventListener('playing', function (e) {
+        if (e.target && e.target.matches && e.target.matches('video.uc-slide-video')) {
+            var slide = e.target.closest('.uc-slide');
+            markVideoPlaying(slide);
+        }
+    }, true);
+
+    // Vimeo & YouTube iframe postMessage playback event handling
+    window.addEventListener('message', function (event) {
+        if (!event.data) return;
+
+        var data = event.data;
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                data = {};
+            }
+        }
+
+        var isVimeoPlaying = data && (data.event === 'play' || data.event === 'playing' || data.event === 'timeupdate');
+        var isYouTubePlaying = data && data.event === 'infoDelivery' && data.info && data.info.playerState === 1;
+
+        if (isVimeoPlaying || isYouTubePlaying) {
+            document.querySelectorAll('.uc-slide-iframe').forEach(function (iframe) {
+                if (iframe.contentWindow === event.source) {
+                    var slide = iframe.closest('.uc-slide');
+                    markVideoPlaying(slide);
+                }
+            });
+        }
+    });
+
+    function handleVideoPlayback(swiper) {
+        if (!swiper || !swiper.el) return;
+
+        // Play HTML5 videos
+        var allVideos = swiper.el.querySelectorAll('video.uc-slide-video');
+        allVideos.forEach(function (video) {
+            if (video.paused) {
                 var playPromise = video.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(function (err) {
                         console.log('UC Slider: video play interrupted or prevented', err);
                     });
                 }
-            } else {
-                video.pause();
-                try {
-                    video.currentTime = 0;
-                } catch (e) {}
             }
         });
+
+        // Trigger iframe playback on active slide
+        if (swiper.slides && swiper.slides[swiper.activeIndex]) {
+            var activeSlide = swiper.slides[swiper.activeIndex];
+            var iframe = activeSlide.querySelector('iframe.uc-slide-iframe');
+            if (iframe && iframe.contentWindow) {
+                try {
+                    iframe.contentWindow.postMessage('{"method":"play"}', '*');
+                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                } catch (e) {}
+            }
+        }
     }
 
     function initSliders() {
@@ -71,11 +118,18 @@
             var swiperConfig = Object.assign({}, config, {
                 observer: true,
                 observeParents: true,
+                loopPreventsSliding: false,
                 on: {
                     init: function () {
                         handleVideoPlayback(this);
                     },
                     slideChange: function () {
+                        handleVideoPlayback(this);
+                    },
+                    slideChangeTransitionStart: function () {
+                        handleVideoPlayback(this);
+                    },
+                    slideChangeTransitionEnd: function () {
                         handleVideoPlayback(this);
                     }
                 }
