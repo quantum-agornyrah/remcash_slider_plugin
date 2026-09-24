@@ -2,7 +2,7 @@
 /**
  * Plugin Name: UC Dynamic Slider
  * Description: A custom Elementor widget — dynamic slider supporting Images, Animated GIFs, MP4/WebM Videos, and YouTube/Vimeo embeds with captions, autoplay, navigation, and custom buttons.
- * Version: 1.2.5
+ * Version: 1.3.0
  * Author: Agornyrah Eric
  * Text Domain: uc-dynamic-slider
  */

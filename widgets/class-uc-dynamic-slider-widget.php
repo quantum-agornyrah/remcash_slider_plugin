@@ -312,7 +312,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'tab'   => Controls_Manager::TAB_STYLE,
         ]);
 
-        $this->add_control( 'overlay_color', [
+        $this->add_responsive_control( 'overlay_color', [
             'label'     => __( 'Overlay Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => 'rgba(0,0,0,0.45)',
