@@ -6,25 +6,36 @@ use Elementor\Controls_Manager;
 use Elementor\Repeater;
 use Elementor\Utils;
 use Elementor\Group_Control_Typography;
-use Elementor\Group_Control_Background;
 
+/**
+ * UC Dynamic Slider Widget
+ *
+ * Elementor widget that renders a Swiper-powered slider supporting:
+ * – Images / Animated GIFs
+ * – Self-hosted MP4/WebM videos
+ * – External YouTube / Vimeo embeds
+ *
+ * Each slide supports a title, description, overlay, and a link button.
+ */
 class UC_Dynamic_Slider_Widget extends Widget_Base {
 
-    public function get_name()        { return 'uc_dynamic_slider'; }
-    public function get_title()       { return __( 'UC Dynamic Slider', 'uc-dynamic-slider' ); }
-    public function get_icon()        { return 'eicon-slideshow'; }
-    public function get_categories()  { return [ 'general' ]; }
-    public function get_keywords()    { return [ 'slider', 'image', 'carousel', 'swiper' ]; }
+    public function get_name()       { return 'uc_dynamic_slider'; }
+    public function get_title()      { return __( 'UC Dynamic Slider', 'uc-dynamic-slider' ); }
+    public function get_icon()       { return 'eicon-slideshow'; }
+    public function get_categories() { return [ 'general' ]; }
+    public function get_keywords()   { return [ 'slider', 'image', 'carousel', 'swiper' ]; }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Controls
+    // ─────────────────────────────────────────────────────────────────────────
 
     protected function register_controls() {
 
-        /* ────────────────────────────────────────────
-         *  SECTION: SLIDES
-         * ──────────────────────────────────────────── */
+        // ── Slides ──────────────────────────────────────────────────────────
         $this->start_controls_section( 'section_slides', [
             'label' => __( 'Slides', 'uc-dynamic-slider' ),
             'tab'   => Controls_Manager::TAB_CONTENT,
-        ]);
+        ] );
 
         $repeater = new Repeater();
 
@@ -37,14 +48,14 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'video'    => __( 'Self-Hosted Video (MP4/WebM)', 'uc-dynamic-slider' ),
                 'external' => __( 'External Video (YouTube/Vimeo)', 'uc-dynamic-slider' ),
             ],
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_image', [
             'label'       => __( 'Image / Poster', 'uc-dynamic-slider' ),
             'type'        => Controls_Manager::MEDIA,
             'default'     => [ 'url' => Utils::get_placeholder_image_src() ],
-            'description' => __( 'Select image/GIF, or fallback poster image for videos.', 'uc-dynamic-slider' ),
-        ]);
+            'description' => __( 'Select an image/GIF, or a poster/fallback for video slides.', 'uc-dynamic-slider' ),
+        ] );
 
         $repeater->add_control( 'slide_video', [
             'label'       => __( 'Video File', 'uc-dynamic-slider' ),
@@ -52,7 +63,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'media_types' => [ 'video' ],
             'condition'   => [ 'slide_type' => 'video' ],
             'description' => __( 'Upload or select an MP4/WebM video file.', 'uc-dynamic-slider' ),
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_video_url', [
             'label'       => __( 'Video URL', 'uc-dynamic-slider' ),
@@ -60,8 +71,8 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'placeholder' => 'https://www.youtube.com/watch?v=...',
             'label_block' => true,
             'condition'   => [ 'slide_type' => 'external' ],
-            'description' => __( 'Enter YouTube or Vimeo video link.', 'uc-dynamic-slider' ),
-        ]);
+            'description' => __( 'Enter a YouTube or Vimeo video link.', 'uc-dynamic-slider' ),
+        ] );
 
         $repeater->add_control( 'slide_external_fit', [
             'label'     => __( 'External Video Fit', 'uc-dynamic-slider' ),
@@ -73,7 +84,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'custom'  => __( 'Custom Height', 'uc-dynamic-slider' ),
             ],
             'condition' => [ 'slide_type' => 'external' ],
-        ]);
+        ] );
 
         $repeater->add_responsive_control( 'slide_external_height', [
             'label'      => __( 'External Video Height', 'uc-dynamic-slider' ),
@@ -81,15 +92,15 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'size_units' => [ 'px', '%', 'vh' ],
             'range'      => [
                 'px' => [ 'min' => 100, 'max' => 900, 'step' => 10 ],
-                '%'  => [ 'min' => 20,  'max' => 100, 'step' => 1  ],
-                'vh' => [ 'min' => 20,  'max' => 100, 'step' => 1  ],
+                '%'  => [ 'min' => 20,  'max' => 100 ],
+                'vh' => [ 'min' => 20,  'max' => 100 ],
             ],
             'default'    => [ 'unit' => '%', 'size' => 100 ],
             'condition'  => [ 'slide_type' => 'external' ],
             'selectors'  => [
                 '{{WRAPPER}} {{CURRENT_ITEM}} .uc-slide-iframe' => 'height: {{SIZE}}{{UNIT}} !important; min-height: {{SIZE}}{{UNIT}} !important;',
             ],
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_video_loop', [
             'label'        => __( 'Loop Video', 'uc-dynamic-slider' ),
@@ -97,7 +108,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => 'yes',
             'condition'    => [ 'slide_type!' => 'image' ],
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_video_mute', [
             'label'        => __( 'Mute Audio', 'uc-dynamic-slider' ),
@@ -106,21 +117,21 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'default'      => 'yes',
             'condition'    => [ 'slide_type!' => 'image' ],
             'description'  => __( 'Required by most browsers for autoplay.', 'uc-dynamic-slider' ),
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_title', [
             'label'       => __( 'Title', 'uc-dynamic-slider' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Slide Title', 'uc-dynamic-slider' ),
             'label_block' => true,
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_description', [
             'label'   => __( 'Description', 'uc-dynamic-slider' ),
             'type'    => Controls_Manager::TEXTAREA,
             'default' => __( 'Add a short caption or description here.', 'uc-dynamic-slider' ),
             'rows'    => 3,
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_link', [
             'label'         => __( 'Link (URL)', 'uc-dynamic-slider' ),
@@ -128,54 +139,34 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'placeholder'   => 'https://example.com',
             'show_external' => true,
             'default'       => [ 'url' => '' ],
-        ]);
+        ] );
 
         $repeater->add_control( 'slide_link_label', [
             'label'     => __( 'Link Button Label', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::TEXT,
             'default'   => __( 'Learn More', 'uc-dynamic-slider' ),
             'condition' => [ 'slide_link[url]!' => '' ],
-        ]);
+        ] );
 
         $this->add_control( 'slides', [
             'label'       => __( 'Slides', 'uc-dynamic-slider' ),
             'type'        => Controls_Manager::REPEATER,
             'fields'      => $repeater->get_controls(),
             'default'     => [
-                [
-                    'slide_type'        => 'image',
-                    'slide_title'       => 'First Slide',
-                    'slide_description' => 'A short caption for the first slide.',
-                    'slide_link'        => [ 'url' => '' ],
-                    'slide_image'       => [ 'url' => Utils::get_placeholder_image_src() ],
-                ],
-                [
-                    'slide_type'        => 'image',
-                    'slide_title'       => 'Second Slide',
-                    'slide_description' => 'A short caption for the second slide.',
-                    'slide_link'        => [ 'url' => '' ],
-                    'slide_image'       => [ 'url' => Utils::get_placeholder_image_src() ],
-                ],
-                [
-                    'slide_type'        => 'image',
-                    'slide_title'       => 'Third Slide',
-                    'slide_description' => 'A short caption for the third slide.',
-                    'slide_link'        => [ 'url' => '' ],
-                    'slide_image'       => [ 'url' => Utils::get_placeholder_image_src() ],
-                ],
+                [ 'slide_type' => 'image', 'slide_title' => 'First Slide',  'slide_description' => 'A short caption for the first slide.',  'slide_link' => [ 'url' => '' ], 'slide_image' => [ 'url' => Utils::get_placeholder_image_src() ] ],
+                [ 'slide_type' => 'image', 'slide_title' => 'Second Slide', 'slide_description' => 'A short caption for the second slide.', 'slide_link' => [ 'url' => '' ], 'slide_image' => [ 'url' => Utils::get_placeholder_image_src() ] ],
+                [ 'slide_type' => 'image', 'slide_title' => 'Third Slide',  'slide_description' => 'A short caption for the third slide.',  'slide_link' => [ 'url' => '' ], 'slide_image' => [ 'url' => Utils::get_placeholder_image_src() ] ],
             ],
             'title_field' => '{{{ slide_title }}}',
-        ]);
+        ] );
 
         $this->end_controls_section();
 
-        /* ────────────────────────────────────────────
-         *  SECTION: SLIDER SETTINGS
-         * ──────────────────────────────────────────── */
+        // ── Slider Settings ─────────────────────────────────────────────────
         $this->start_controls_section( 'section_settings', [
             'label' => __( 'Slider Settings', 'uc-dynamic-slider' ),
             'tab'   => Controls_Manager::TAB_CONTENT,
-        ]);
+        ] );
 
         $this->add_responsive_control( 'slider_height', [
             'label'      => __( 'Slider Height', 'uc-dynamic-slider' ),
@@ -183,13 +174,11 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'size_units' => [ 'px', 'vh' ],
             'range'      => [
                 'px' => [ 'min' => 200, 'max' => 900, 'step' => 10 ],
-                'vh' => [ 'min' => 20,  'max' => 100, 'step' => 1  ],
+                'vh' => [ 'min' => 20,  'max' => 100 ],
             ],
             'default'    => [ 'unit' => 'px', 'size' => 500 ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slider-wrapper' => 'height: {{SIZE}}{{UNIT}};',
-            ],
-        ]);
+            'selectors'  => [ '{{WRAPPER}} .uc-slider-wrapper' => 'height: {{SIZE}}{{UNIT}};' ],
+        ] );
 
         $this->add_control( 'autoplay', [
             'label'        => __( 'Autoplay', 'uc-dynamic-slider' ),
@@ -198,7 +187,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'uc-dynamic-slider' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-        ]);
+        ] );
 
         $this->add_control( 'autoplay_speed', [
             'label'     => __( 'Autoplay Delay (ms)', 'uc-dynamic-slider' ),
@@ -208,17 +197,15 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'max'       => 10000,
             'step'      => 500,
             'condition' => [ 'autoplay' => 'yes' ],
-        ]);
+        ] );
 
         $this->add_control( 'pause_on_hover', [
             'label'        => __( 'Pause on Hover', 'uc-dynamic-slider' ),
             'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'uc-dynamic-slider' ),
-            'label_off'    => __( 'No', 'uc-dynamic-slider' ),
             'return_value' => 'yes',
             'default'      => 'yes',
             'condition'    => [ 'autoplay' => 'yes' ],
-        ]);
+        ] );
 
         $this->add_control( 'transition_speed', [
             'label'   => __( 'Transition Speed (ms)', 'uc-dynamic-slider' ),
@@ -227,28 +214,28 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'min'     => 200,
             'max'     => 2000,
             'step'    => 100,
-        ]);
+        ] );
 
         $this->add_control( 'show_arrows', [
             'label'        => __( 'Navigation Arrows', 'uc-dynamic-slider' ),
             'type'         => Controls_Manager::SWITCHER,
             'return_value' => 'yes',
             'default'      => 'yes',
-        ]);
+        ] );
 
         $this->add_control( 'show_dots', [
             'label'        => __( 'Dot Pagination', 'uc-dynamic-slider' ),
             'type'         => Controls_Manager::SWITCHER,
             'return_value' => 'yes',
             'default'      => 'yes',
-        ]);
+        ] );
 
         $this->add_control( 'loop', [
             'label'        => __( 'Infinite Loop', 'uc-dynamic-slider' ),
             'type'         => Controls_Manager::SWITCHER,
             'return_value' => 'yes',
             'default'      => 'yes',
-        ]);
+        ] );
 
         $this->add_control( 'keyboard_nav', [
             'label'        => __( 'Keyboard Navigation', 'uc-dynamic-slider' ),
@@ -257,7 +244,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'uc-dynamic-slider' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-        ]);
+        ] );
 
         $this->add_control( 'slide_effect', [
             'label'   => __( 'Slide Effect', 'uc-dynamic-slider' ),
@@ -267,7 +254,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'fade'  => __( 'Fade', 'uc-dynamic-slider' ),
             ],
             'default' => 'slide',
-        ]);
+        ] );
 
         $this->add_control( 'image_fit', [
             'label'     => __( 'Image Fit', 'uc-dynamic-slider' ),
@@ -278,48 +265,39 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'fill'    => 'Fill',
             ],
             'default'   => 'cover',
-            'selectors' => [
-                '{{WRAPPER}} .uc-slide-bg' => 'background-size: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .uc-slide-bg' => 'background-size: {{VALUE}};' ],
+        ] );
 
         $this->add_responsive_control( 'slide_border_radius', [
-            'label'      => __( 'Image Border Radius', 'uc-dynamic-slider' ),
+            'label'      => __( 'Border Radius', 'uc-dynamic-slider' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => [ 'px', '%' ],
             'range'      => [
                 'px' => [ 'min' => 0, 'max' => 100 ],
                 '%'  => [ 'min' => 0, 'max' => 50 ],
             ],
-            'default'    => [
-                'size' => 0,
-                'unit' => 'px',
-            ],
+            'default'    => [ 'size' => 0, 'unit' => 'px' ],
             'selectors'  => [
-                '{{WRAPPER}} .uc-slide'       => 'border-radius: {{SIZE}}{{UNIT}};',
-                '{{WRAPPER}} .uc-slide-bg'     => 'border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .uc-slide'         => 'border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .uc-slide-bg'      => 'border-radius: {{SIZE}}{{UNIT}};',
                 '{{WRAPPER}} .uc-slide-overlay' => 'border-radius: {{SIZE}}{{UNIT}};',
             ],
-        ]);
+        ] );
 
         $this->end_controls_section();
 
-        /* ────────────────────────────────────────────
-         *  SECTION: OVERLAY STYLE
-         * ──────────────────────────────────────────── */
+        // ── Style: Overlay ───────────────────────────────────────────────────
         $this->start_controls_section( 'section_overlay_style', [
             'label' => __( 'Overlay', 'uc-dynamic-slider' ),
             'tab'   => Controls_Manager::TAB_STYLE,
-        ]);
+        ] );
 
         $this->add_responsive_control( 'overlay_color', [
             'label'     => __( 'Overlay Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => 'rgba(0,0,0,0.45)',
-            'selectors' => [
-                '{{WRAPPER}} .uc-slide-overlay' => 'background-color: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .uc-slide-overlay' => 'background-color: {{VALUE}};' ],
+        ] );
 
         $this->add_control( 'caption_position', [
             'label'   => __( 'Caption Position', 'uc-dynamic-slider' ),
@@ -330,7 +308,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'top'    => 'Top',
             ],
             'default' => 'center',
-        ]);
+        ] );
 
         $this->add_responsive_control( 'caption_align', [
             'label'     => __( 'Content Alignment', 'uc-dynamic-slider' ),
@@ -346,32 +324,27 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 '{{WRAPPER}} .uc-slide-title'   => 'text-align: {{VALUE}};',
                 '{{WRAPPER}} .uc-slide-desc'    => 'text-align: {{VALUE}};',
             ],
-        ]);
+        ] );
 
         $this->end_controls_section();
 
-        /* ────────────────────────────────────────────
-         *  SECTION: TITLE STYLE
-         * ──────────────────────────────────────────── */
+        // ── Style: Title ─────────────────────────────────────────────────────
         $this->start_controls_section( 'section_title_style', [
             'label' => __( 'Title', 'uc-dynamic-slider' ),
             'tab'   => Controls_Manager::TAB_STYLE,
-        ]);
+        ] );
 
         $this->add_control( 'title_color', [
             'label'     => __( 'Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
-            'selectors' => [
-                '{{WRAPPER}} .uc-slide-title' => 'color: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .uc-slide-title' => 'color: {{VALUE}};' ],
+        ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'title_typography',
-            'label'    => __( 'Typography', 'uc-dynamic-slider' ),
             'selector' => '{{WRAPPER}} .uc-slide-title',
-        ]);
+        ] );
 
         $this->add_responsive_control( 'title_font_size', [
             'label'      => __( 'Font Size', 'uc-dynamic-slider' ),
@@ -379,230 +352,184 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             'size_units' => [ 'px', 'em', 'rem', 'vw' ],
             'range'      => [
                 'px'  => [ 'min' => 16, 'max' => 100 ],
-                'em'  => [ 'min' => 1, 'max' => 6 ],
-                'rem' => [ 'min' => 1, 'max' => 6 ],
-                'vw'  => [ 'min' => 1, 'max' => 10 ],
+                'em'  => [ 'min' => 1,  'max' => 6 ],
+                'rem' => [ 'min' => 1,  'max' => 6 ],
+                'vw'  => [ 'min' => 1,  'max' => 10 ],
             ],
-            'default'    => [
-                'size' => 32,
-                'unit' => 'px',
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slide-title' => 'font-size: {{SIZE}}{{UNIT}};',
-            ],
-        ]);
+            'default'    => [ 'size' => 32, 'unit' => 'px' ],
+            'selectors'  => [ '{{WRAPPER}} .uc-slide-title' => 'font-size: {{SIZE}}{{UNIT}};' ],
+        ] );
 
         $this->add_responsive_control( 'title_spacing', [
-            'label'      => __( 'Bottom Spacing', 'uc-dynamic-slider' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'default'    => [ 'size' => 12 ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slide-title' => 'margin-bottom: {{SIZE}}px;',
-            ],
-        ]);
+            'label'     => __( 'Bottom Spacing', 'uc-dynamic-slider' ),
+            'type'      => Controls_Manager::SLIDER,
+            'size_units'=> [ 'px' ],
+            'default'   => [ 'size' => 12 ],
+            'selectors' => [ '{{WRAPPER}} .uc-slide-title' => 'margin-bottom: {{SIZE}}px;' ],
+        ] );
 
         $this->add_responsive_control( 'caption_padding', [
             'label'      => __( 'Caption Padding', 'uc-dynamic-slider' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => [ 'px' ],
-            'range'      => [
-                'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
-            ],
+            'range'      => [ 'px' => [ 'min' => 0, 'max' => 100 ] ],
             'default'    => [ 'size' => 48 ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slide-caption' => 'padding: 32px {{SIZE}}px;',
-            ],
-        ]);
+            'selectors'  => [ '{{WRAPPER}} .uc-slide-caption' => 'padding: 32px {{SIZE}}px;' ],
+        ] );
 
         $this->end_controls_section();
 
-        /* ────────────────────────────────────────────
-         *  SECTION: DESCRIPTION STYLE
-         * ──────────────────────────────────────────── */
+        // ── Style: Description ───────────────────────────────────────────────
         $this->start_controls_section( 'section_desc_style', [
             'label' => __( 'Description', 'uc-dynamic-slider' ),
             'tab'   => Controls_Manager::TAB_STYLE,
-        ]);
+        ] );
 
         $this->add_control( 'desc_color', [
             'label'     => __( 'Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => 'rgba(255,255,255,0.85)',
-            'selectors' => [
-                '{{WRAPPER}} .uc-slide-desc' => 'color: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .uc-slide-desc' => 'color: {{VALUE}};' ],
+        ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'desc_typography',
-            'label'    => __( 'Typography', 'uc-dynamic-slider' ),
             'selector' => '{{WRAPPER}} .uc-slide-desc',
-        ]);
+        ] );
 
         $this->add_responsive_control( 'desc_font_size', [
             'label'      => __( 'Font Size', 'uc-dynamic-slider' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => [ 'px', 'em', 'rem', 'vw' ],
             'range'      => [
-                'px'  => [ 'min' => 12, 'max' => 50 ],
+                'px'  => [ 'min' => 12,  'max' => 50 ],
                 'em'  => [ 'min' => 0.8, 'max' => 3 ],
                 'rem' => [ 'min' => 0.8, 'max' => 3 ],
-                'vw'  => [ 'min' => 1, 'max' => 5 ],
+                'vw'  => [ 'min' => 1,   'max' => 5 ],
             ],
-            'default'    => [
-                'size' => 16,
-                'unit' => 'px',
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slide-desc' => 'font-size: {{SIZE}}{{UNIT}};',
-            ],
-        ]);
+            'default'    => [ 'size' => 16, 'unit' => 'px' ],
+            'selectors'  => [ '{{WRAPPER}} .uc-slide-desc' => 'font-size: {{SIZE}}{{UNIT}};' ],
+        ] );
 
         $this->add_responsive_control( 'desc_spacing', [
-            'label'      => __( 'Bottom Spacing', 'uc-dynamic-slider' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'default'    => [ 'size' => 20 ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slide-desc' => 'margin-bottom: {{SIZE}}px;',
-            ],
-        ]);
+            'label'     => __( 'Bottom Spacing', 'uc-dynamic-slider' ),
+            'type'      => Controls_Manager::SLIDER,
+            'size_units'=> [ 'px' ],
+            'default'   => [ 'size' => 20 ],
+            'selectors' => [ '{{WRAPPER}} .uc-slide-desc' => 'margin-bottom: {{SIZE}}px;' ],
+        ] );
 
         $this->end_controls_section();
 
-        /* ────────────────────────────────────────────
-         *  SECTION: BUTTON STYLE
-         * ──────────────────────────────────────────── */
+        // ── Style: Link Button ───────────────────────────────────────────────
         $this->start_controls_section( 'section_btn_style', [
             'label' => __( 'Link Button', 'uc-dynamic-slider' ),
             'tab'   => Controls_Manager::TAB_STYLE,
-        ]);
+        ] );
 
         $this->add_control( 'btn_text_color', [
             'label'     => __( 'Text Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
             'selectors' => [ '{{WRAPPER}} .uc-slide-btn' => 'color: {{VALUE}};' ],
-        ]);
+        ] );
 
         $this->add_control( 'btn_bg_color', [
             'label'     => __( 'Background Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => 'rgba(255,255,255,0.2)',
             'selectors' => [ '{{WRAPPER}} .uc-slide-btn' => 'background: {{VALUE}};' ],
-        ]);
+        ] );
 
         $this->add_control( 'btn_border_color', [
             'label'     => __( 'Border Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => 'rgba(255,255,255,0.6)',
             'selectors' => [ '{{WRAPPER}} .uc-slide-btn' => 'border-color: {{VALUE}};' ],
-        ]);
+        ] );
 
         $this->add_responsive_control( 'btn_border_radius', [
-            'label'      => __( 'Border Radius', 'uc-dynamic-slider' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'default'    => [ 'size' => 4 ],
-            'selectors'  => [ '{{WRAPPER}} .uc-slide-btn' => 'border-radius: {{SIZE}}px;' ],
-        ]);
+            'label'     => __( 'Border Radius', 'uc-dynamic-slider' ),
+            'type'      => Controls_Manager::SLIDER,
+            'size_units'=> [ 'px' ],
+            'default'   => [ 'size' => 4 ],
+            'selectors' => [ '{{WRAPPER}} .uc-slide-btn' => 'border-radius: {{SIZE}}px;' ],
+        ] );
 
         $this->add_responsive_control( 'btn_font_size', [
             'label'      => __( 'Font Size', 'uc-dynamic-slider' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => [ 'px', 'em', 'rem' ],
             'range'      => [
-                'px'  => [ 'min' => 10, 'max' => 30 ],
+                'px'  => [ 'min' => 10,  'max' => 30 ],
                 'em'  => [ 'min' => 0.6, 'max' => 2 ],
                 'rem' => [ 'min' => 0.6, 'max' => 2 ],
             ],
-            'default'    => [
-                'size' => 14,
-                'unit' => 'px',
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slide-btn' => 'font-size: {{SIZE}}{{UNIT}};',
-            ],
-        ]);
+            'default'    => [ 'size' => 14, 'unit' => 'px' ],
+            'selectors'  => [ '{{WRAPPER}} .uc-slide-btn' => 'font-size: {{SIZE}}{{UNIT}};' ],
+        ] );
 
         $this->add_responsive_control( 'btn_padding', [
             'label'      => __( 'Padding', 'uc-dynamic-slider' ),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', 'em', '%' ],
-            'default'    => [
-                'top'    => 10,
-                'right'  => 28,
-                'bottom' => 10,
-                'left'   => 28,
-                'unit'   => 'px',
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slide-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ]);
+            'default'    => [ 'top' => 10, 'right' => 28, 'bottom' => 10, 'left' => 28, 'unit' => 'px' ],
+            'selectors'  => [ '{{WRAPPER}} .uc-slide-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ],
+        ] );
 
         $this->add_control( 'btn_hover_heading', [
             'label' => __( 'Hover', 'uc-dynamic-slider' ),
             'type'  => Controls_Manager::HEADING,
-        ]);
+        ] );
 
         $this->add_control( 'btn_hover_text_color', [
             'label'     => __( 'Text Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [ '{{WRAPPER}} .uc-slide-btn:hover' => 'color: {{VALUE}};' ],
-        ]);
+        ] );
 
         $this->add_control( 'btn_hover_bg_color', [
             'label'     => __( 'Background Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [ '{{WRAPPER}} .uc-slide-btn:hover' => 'background-color: {{VALUE}};' ],
-        ]);
+        ] );
 
         $this->add_control( 'btn_hover_border_color', [
             'label'     => __( 'Border Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [ '{{WRAPPER}} .uc-slide-btn:hover' => 'border-color: {{VALUE}};' ],
-        ]);
+        ] );
 
         $this->end_controls_section();
 
-        /* ────────────────────────────────────────────
-         *  SECTION: ARROWS STYLE
-         * ──────────────────────────────────────────── */
+        // ── Style: Arrows ────────────────────────────────────────────────────
         $this->start_controls_section( 'section_arrows_style', [
             'label'     => __( 'Arrows', 'uc-dynamic-slider' ),
             'tab'       => Controls_Manager::TAB_STYLE,
             'condition' => [ 'show_arrows' => 'yes' ],
-        ]);
+        ] );
 
         $this->add_control( 'arrow_color', [
             'label'     => __( 'Icon Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
-            'selectors' => [
-                '{{WRAPPER}} .uc-slider-prev svg, {{WRAPPER}} .uc-slider-next svg' => 'fill: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .uc-slider-prev svg, {{WRAPPER}} .uc-slider-next svg' => 'fill: {{VALUE}};' ],
+        ] );
 
         $this->add_control( 'arrow_bg', [
             'label'     => __( 'Background', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => 'rgba(0,0,0,0.35)',
-            'selectors' => [
-                '{{WRAPPER}} .uc-slider-prev, {{WRAPPER}} .uc-slider-next' => 'background: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .uc-slider-prev, {{WRAPPER}} .uc-slider-next' => 'background: {{VALUE}};' ],
+        ] );
 
         $this->add_responsive_control( 'arrow_size', [
-            'label'      => __( 'Button Size', 'uc-dynamic-slider' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'default'    => [ 'size' => 44 ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slider-prev, {{WRAPPER}} .uc-slider-next' => 'width: {{SIZE}}px; height: {{SIZE}}px;',
-            ],
-        ]);
+            'label'     => __( 'Button Size', 'uc-dynamic-slider' ),
+            'type'      => Controls_Manager::SLIDER,
+            'size_units'=> [ 'px' ],
+            'default'   => [ 'size' => 44 ],
+            'selectors' => [ '{{WRAPPER}} .uc-slider-prev, {{WRAPPER}} .uc-slider-next' => 'width: {{SIZE}}px; height: {{SIZE}}px;' ],
+        ] );
 
         $this->add_responsive_control( 'arrow_vertical_pos', [
             'label'      => __( 'Vertical Position', 'uc-dynamic-slider' ),
@@ -613,84 +540,68 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'px' => [ 'min' => 0, 'max' => 500 ],
             ],
             'default'    => [ 'unit' => '%', 'size' => 50 ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slider-prev, {{WRAPPER}} .uc-slider-next' => 'top: {{SIZE}}{{UNIT}};',
-            ],
-        ]);
+            'selectors'  => [ '{{WRAPPER}} .uc-slider-prev, {{WRAPPER}} .uc-slider-next' => 'top: {{SIZE}}{{UNIT}};' ],
+        ] );
 
         $this->end_controls_section();
 
-        /* ────────────────────────────────────────────
-         *  SECTION: DOTS STYLE
-         * ──────────────────────────────────────────── */
+        // ── Style: Dots ──────────────────────────────────────────────────────
         $this->start_controls_section( 'section_dots_style', [
             'label'     => __( 'Dots', 'uc-dynamic-slider' ),
             'tab'       => Controls_Manager::TAB_STYLE,
             'condition' => [ 'show_dots' => 'yes' ],
-        ]);
+        ] );
 
         $this->add_control( 'dot_color', [
             'label'     => __( 'Inactive Dot Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => 'rgba(255,255,255,0.4)',
-            'selectors' => [
-                '{{WRAPPER}} .swiper-pagination-bullet' => 'background: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .swiper-pagination-bullet' => 'background: {{VALUE}};' ],
+        ] );
 
         $this->add_control( 'dot_active_color', [
             'label'     => __( 'Active Dot Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
-            'selectors' => [
-                '{{WRAPPER}} .swiper-pagination-bullet-active' => 'background: {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .swiper-pagination-bullet-active' => 'background: {{VALUE}};' ],
+        ] );
 
         $this->add_control( 'dot_border_heading', [
             'label'     => __( 'Border', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
-        ]);
+        ] );
 
         $this->add_control( 'dot_border', [
             'label'        => __( 'Show Border', 'uc-dynamic-slider' ),
             'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'uc-dynamic-slider' ),
-            'label_off'    => __( 'No', 'uc-dynamic-slider' ),
             'return_value' => 'yes',
             'default'      => '',
-        ]);
+        ] );
 
         $this->add_control( 'dot_border_color', [
             'label'     => __( 'Inactive Border Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
             'condition' => [ 'dot_border' => 'yes' ],
-            'selectors' => [
-                '{{WRAPPER}} .swiper-pagination-bullet' => 'border: 2px solid {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .swiper-pagination-bullet' => 'border: 2px solid {{VALUE}};' ],
+        ] );
 
         $this->add_control( 'dot_active_border_color', [
             'label'     => __( 'Active Border Color', 'uc-dynamic-slider' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
             'condition' => [ 'dot_border' => 'yes' ],
-            'selectors' => [
-                '{{WRAPPER}} .swiper-pagination-bullet-active' => 'border: 2px solid {{VALUE}};',
-            ],
-        ]);
+            'selectors' => [ '{{WRAPPER}} .swiper-pagination-bullet-active' => 'border: 2px solid {{VALUE}};' ],
+        ] );
 
         $this->add_responsive_control( 'dot_size', [
-            'label'      => __( 'Dot Size', 'uc-dynamic-slider' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'default'    => [ 'size' => 8 ],
-            'selectors'  => [
-                '{{WRAPPER}} .swiper-pagination-bullet' => 'width: {{SIZE}}px; height: {{SIZE}}px;',
-            ],
-        ]);
+            'label'     => __( 'Dot Size', 'uc-dynamic-slider' ),
+            'type'      => Controls_Manager::SLIDER,
+            'size_units'=> [ 'px' ],
+            'default'   => [ 'size' => 8 ],
+            'selectors' => [ '{{WRAPPER}} .swiper-pagination-bullet' => 'width: {{SIZE}}px; height: {{SIZE}}px;' ],
+        ] );
 
         $this->add_responsive_control( 'dots_vertical_pos', [
             'label'      => __( 'Vertical Position', 'uc-dynamic-slider' ),
@@ -701,78 +612,85 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 '%'  => [ 'min' => 0, 'max' => 100 ],
             ],
             'default'    => [ 'unit' => 'px', 'size' => 16 ],
-            'selectors'  => [
-                '{{WRAPPER}} .uc-slider-dots' => 'bottom: {{SIZE}}{{UNIT}} !important;',
-            ],
-        ]);
+            'selectors'  => [ '{{WRAPPER}} .uc-slider-dots' => 'bottom: {{SIZE}}{{UNIT}} !important;' ],
+        ] );
 
         $this->end_controls_section();
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns a thumbnail URL for a YouTube or Vimeo video URL.
+     * Results are cached in transients (1 week for hits, 1 day for misses).
+     */
     private function get_external_video_poster( $url ) {
         if ( empty( $url ) ) return '';
 
-        // YouTube Thumbnail – try maxresdefault (1280×720) first,
-        // fall back to sddefault (640×480) then hqdefault (480×360).
+        // ── YouTube ──
         if ( preg_match( '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches ) ) {
-            $video_id = $matches[1];
+            $video_id      = $matches[1];
             $transient_key = 'uc_yt_thumb_' . $video_id;
-            $cached = get_transient( $transient_key );
+            $cached        = get_transient( $transient_key );
             if ( false !== $cached ) return $cached;
 
-            // Check each quality level; maxresdefault may 404 for some videos.
-            $qualities = [ 'maxresdefault', 'sddefault', 'hqdefault' ];
-            foreach ( $qualities as $quality ) {
-                $thumb_url = 'https://img.youtube.com/vi/' . $video_id . '/' . $quality . '.jpg';
-                $check = wp_remote_head( $thumb_url, [ 'timeout' => 3 ] );
-                if ( ! is_wp_error( $check ) && 200 === wp_remote_retrieve_response_code( $check ) ) {
+            // Try highest quality first; fall back gracefully.
+            foreach ( [ 'maxresdefault', 'sddefault', 'hqdefault' ] as $quality ) {
+                $thumb_url = "https://img.youtube.com/vi/{$video_id}/{$quality}.jpg";
+                $response  = wp_remote_head( $thumb_url, [ 'timeout' => 3 ] );
+                if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
                     set_transient( $transient_key, $thumb_url, WEEK_IN_SECONDS );
                     return $thumb_url;
                 }
             }
-            // Ultimate fallback (always exists)
-            $fallback = 'https://img.youtube.com/vi/' . $video_id . '/hqdefault.jpg';
+
+            // hqdefault always exists — use as ultimate fallback.
+            $fallback = "https://img.youtube.com/vi/{$video_id}/hqdefault.jpg";
             set_transient( $transient_key, $fallback, WEEK_IN_SECONDS );
             return $fallback;
         }
 
-        // Vimeo Thumbnail via oEmbed API – request 1920px wide image.
+        // ── Vimeo ──
         if ( preg_match( '/vimeo\.com\/(?:.*\/)?([0-9]+)/', $url, $matches ) ) {
-            $video_id = $matches[1];
+            $video_id      = $matches[1];
             $transient_key = 'uc_vimeo_thumb_' . $video_id;
-            $cached = get_transient( $transient_key );
+            $cached        = get_transient( $transient_key );
             if ( false !== $cached ) return $cached;
 
-            // oEmbed endpoint returns thumbnail_url at requested width.
-            $oembed_url = add_query_arg( [
-                'url'   => 'https://vimeo.com/' . $video_id,
-                'width' => 1920,
-            ], 'https://vimeo.com/api/oembed.json' );
+            $oembed_url = add_query_arg(
+                [ 'url' => 'https://vimeo.com/' . $video_id, 'width' => 1920 ],
+                'https://vimeo.com/api/oembed.json'
+            );
 
             $response = wp_remote_get( $oembed_url, [ 'timeout' => 5 ] );
             if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
                 $data = json_decode( wp_remote_retrieve_body( $response ), true );
                 if ( ! empty( $data['thumbnail_url'] ) ) {
-                    // oEmbed thumbnail_url already respects the width param.
-                    // Force the largest available size via URL manipulation.
+                    // Force the largest available resolution via URL manipulation.
                     $thumb_url = preg_replace( '/_\d+x\d+/', '_1920', $data['thumbnail_url'] );
                     set_transient( $transient_key, $thumb_url, WEEK_IN_SECONDS );
                     return $thumb_url;
                 }
             }
-            set_transient( $transient_key, '', DAY_IN_SECONDS );
+
+            set_transient( $transient_key, '', DAY_IN_SECONDS ); // Cache the miss.
         }
 
         return '';
     }
 
+    /**
+     * Converts a YouTube or Vimeo share URL into an autoplay embed URL.
+     */
     private function get_video_embed_url( $url, $mute = true, $loop = true ) {
         if ( empty( $url ) ) return '';
 
-        // YouTube
+        // ── YouTube ──
         if ( preg_match( '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches ) ) {
             $video_id = $matches[1];
-            $params = [
+            $params   = [
                 'autoplay'    => 1,
                 'mute'        => $mute ? 1 : 0,
                 'controls'    => 0,
@@ -782,16 +700,16 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'wmode'       => 'transparent',
             ];
             if ( $loop ) {
-                $params['loop'] = 1;
-                $params['playlist'] = $video_id;
+                $params['loop']     = 1;
+                $params['playlist'] = $video_id; // Required by YouTube for looping.
             }
             return add_query_arg( $params, 'https://www.youtube.com/embed/' . $video_id );
         }
 
-        // Vimeo
+        // ── Vimeo ──
         if ( preg_match( '/vimeo\.com\/(?:.*\/)?([0-9]+)/', $url, $matches ) ) {
             $video_id = $matches[1];
-            $params = [
+            return add_query_arg( [
                 'autoplay'    => 1,
                 'muted'       => $mute ? 1 : 0,
                 'loop'        => $loop ? 1 : 0,
@@ -801,12 +719,15 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 'api'         => 1,
                 'player_id'   => 'vimeo_' . $video_id,
                 'dnt'         => 1,
-            ];
-            return add_query_arg( $params, 'https://player.vimeo.com/video/' . $video_id );
+            ], 'https://player.vimeo.com/video/' . $video_id );
         }
 
         return esc_url( $url );
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Render
+    // ─────────────────────────────────────────────────────────────────────────
 
     protected function render() {
         $settings = $this->get_settings_for_display();
@@ -814,6 +735,7 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
 
         if ( empty( $slides ) ) return;
 
+        // ── Swiper configuration ──
         $autoplay        = $settings['autoplay'] === 'yes';
         $autoplay_speed  = (int) $settings['autoplay_speed'];
         $pause_on_hover  = $settings['pause_on_hover'] === 'yes';
@@ -831,100 +753,100 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
             $autoplay_config = [
                 'delay'                => $autoplay_speed,
                 'disableOnInteraction' => false,
+                'pauseOnMouseEnter'    => $pause_on_hover,
             ];
-            if ( $pause_on_hover ) {
-                $autoplay_config['pauseOnMouseEnter'] = true;
-            }
         }
 
-        $swiper_config = wp_json_encode([
-            'loop'            => $loop,
-            'effect'          => $slide_effect,
-            'speed'           => $transition_speed,
-            'autoplay'        => $autoplay_config,
-            'keyboard'        => $keyboard_nav ? [ 'enabled' => true ] : false,
+        $swiper_config = wp_json_encode( [
+            'loop'       => $loop,
+            'effect'     => $slide_effect,
+            'speed'      => $transition_speed,
+            'autoplay'   => $autoplay_config,
+            'keyboard'   => $keyboard_nav ? [ 'enabled' => true ] : false,
+            'grabCursor' => true,
             'navigation' => $show_arrows ? [
                 'nextEl' => '#' . $unique_id . ' .uc-slider-next',
-                'prevEl' => '#' . $unique_id . ' .uc-slider-prev'
+                'prevEl' => '#' . $unique_id . ' .uc-slider-prev',
             ] : false,
             'pagination' => $show_dots ? [
-                'el' => '#' . $unique_id . ' .uc-slider-dots',
-                'clickable' => true
+                'el'        => '#' . $unique_id . ' .uc-slider-dots',
+                'clickable' => true,
             ] : false,
-            'grabCursor'      => true,
-        ]);
+        ] );
         ?>
         <div class="uc-slider-outer" id="<?php echo esc_attr( $unique_id ); ?>" data-swiper='<?php echo esc_attr( $swiper_config ); ?>'>
             <div class="uc-slider-wrapper swiper">
                 <div class="swiper-wrapper">
-                    <?php foreach ( $slides as $index => $slide ) :
-                        $slide_type       = ! empty( $slide['slide_type'] ) ? $slide['slide_type'] : 'image';
-                        $has_custom_image = ! empty( $slide['slide_image']['url'] );
-                        $ext_url          = ! empty( $slide['slide_video_url'] ) ? $slide['slide_video_url'] : '';
+                    <?php foreach ( $slides as $slide ) :
+                        $slide_type = ! empty( $slide['slide_type'] ) ? $slide['slide_type'] : 'image';
+                        $ext_url    = ! empty( $slide['slide_video_url'] ) ? $slide['slide_video_url'] : '';
+                        $video_url  = ! empty( $slide['slide_video']['url'] ) ? $slide['slide_video']['url'] : '';
+                        $has_img    = ! empty( $slide['slide_image']['url'] );
 
+                        // Determine background image URL.
                         if ( 'image' === $slide_type ) {
-                            $img_url = $has_custom_image ? $slide['slide_image']['url'] : Utils::get_placeholder_image_src();
+                            $img_url = $has_img ? $slide['slide_image']['url'] : Utils::get_placeholder_image_src();
                         } elseif ( 'external' === $slide_type ) {
-                            $img_url = $has_custom_image ? $slide['slide_image']['url'] : $this->get_external_video_poster( $ext_url );
+                            $img_url = $has_img ? $slide['slide_image']['url'] : $this->get_external_video_poster( $ext_url );
                         } else {
-                            $img_url = $has_custom_image ? $slide['slide_image']['url'] : '';
+                            $img_url = $has_img ? $slide['slide_image']['url'] : '';
                         }
 
-                        $video_url      = ! empty( $slide['slide_video']['url'] ) ? $slide['slide_video']['url'] : '';
                         $ext_fit        = ! empty( $slide['slide_external_fit'] ) ? $slide['slide_external_fit'] : 'cover';
                         $is_loop        = ( ! isset( $slide['slide_video_loop'] ) || $slide['slide_video_loop'] === 'yes' );
                         $is_mute        = ( ! isset( $slide['slide_video_mute'] ) || $slide['slide_video_mute'] === 'yes' );
                         $repeater_class = ! empty( $slide['_id'] ) ? 'elementor-repeater-item-' . $slide['_id'] : '';
-
                         $has_link       = ! empty( $slide['slide_link']['url'] );
                         $target         = ! empty( $slide['slide_link']['is_external'] ) ? '_blank' : '_self';
-                        $norel          = ! empty( $slide['slide_link']['nofollow'] ) ? 'nofollow' : '';
+                        $nofollow       = ! empty( $slide['slide_link']['nofollow'] ) ? 'rel="nofollow"' : '';
                     ?>
-                    <div class="swiper-slide uc-slide uc-slide-type-<?php echo esc_attr( $slide_type ); ?> <?php echo esc_attr( $repeater_class ); ?>" data-external-fit="<?php echo esc_attr( $ext_fit ); ?>">
+                    <div class="swiper-slide uc-slide uc-slide-type-<?php echo esc_attr( $slide_type ); ?> <?php echo esc_attr( $repeater_class ); ?>"
+                         data-external-fit="<?php echo esc_attr( $ext_fit ); ?>">
+
                         <?php if ( $img_url ) : ?>
-                            <div class="uc-slide-bg" style="background-image: url('<?php echo esc_url( $img_url ); ?>'); background-position: center; background-repeat: no-repeat;"></div>
+                            <div class="uc-slide-bg" style="background-image: url('<?php echo esc_url( $img_url ); ?>');"></div>
                         <?php endif; ?>
 
                         <?php if ( 'video' === $slide_type && $video_url ) : ?>
                             <video class="uc-slide-video"
-                                   autoplay
-                                   muted
-                                   playsinline
-                                   preload="auto"
+                                   autoplay muted playsinline preload="auto"
                                    <?php echo $is_mute ? 'muted' : ''; ?>
-                                   <?php echo $is_loop ? 'loop' : ''; ?>
+                                   <?php echo $is_loop ? 'loop'  : ''; ?>
                                    <?php if ( $img_url ) echo 'poster="' . esc_url( $img_url ) . '"'; ?>>
                                 <source src="<?php echo esc_url( $video_url ); ?>">
                             </video>
-                        <?php elseif ( 'external' === $slide_type && $ext_url ) :
-                            $embed_url = $this->get_video_embed_url( $ext_url, $is_mute, $is_loop );
-                        ?>
+
+                        <?php elseif ( 'external' === $slide_type && $ext_url ) : ?>
                             <iframe class="uc-slide-iframe"
-                                    src="<?php echo esc_url( $embed_url ); ?>"
+                                    src="<?php echo esc_url( $this->get_video_embed_url( $ext_url, $is_mute, $is_loop ) ); ?>"
                                     frameborder="0"
                                     loading="eager"
                                     fetchpriority="high"
                                     allow="autoplay; encrypted-media; picture-in-picture"
                                     allowfullscreen></iframe>
                         <?php endif; ?>
-                        
+
                         <div class="uc-slide-overlay"></div>
+
                         <div class="uc-slide-caption uc-caption-<?php echo esc_attr( $caption_pos ); ?>">
                             <?php if ( ! empty( $slide['slide_title'] ) ) : ?>
                                 <h2 class="uc-slide-title"><?php echo wp_kses_post( $slide['slide_title'] ); ?></h2>
                             <?php endif; ?>
+
                             <?php if ( ! empty( $slide['slide_description'] ) ) : ?>
                                 <p class="uc-slide-desc"><?php echo wp_kses_post( $slide['slide_description'] ); ?></p>
                             <?php endif; ?>
+
                             <?php if ( $has_link ) : ?>
                                 <a class="uc-slide-btn"
                                    href="<?php echo esc_url( $slide['slide_link']['url'] ); ?>"
                                    target="<?php echo esc_attr( $target ); ?>"
-                                   <?php if ( $norel ) echo 'rel="nofollow"'; ?>>
+                                   <?php echo $nofollow; ?>>
                                     <?php echo esc_html( $slide['slide_link_label'] ?: 'Learn More' ); ?>
                                 </a>
                             <?php endif; ?>
                         </div>
+
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -943,7 +865,6 @@ class UC_Dynamic_Slider_Widget extends Widget_Base {
                 <?php endif; ?>
             </div>
         </div>
-
         <?php
     }
 }
